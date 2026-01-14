@@ -74,6 +74,23 @@
             background-color: transparent;
         }
 
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: transparent;
+        }
+
+        .game-content {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .game-window {
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
         /* Scrollbar styling */
         .content::-webkit-scrollbar {
             width: 8px;
@@ -114,6 +131,7 @@
             { title: "><(((('>", content: "0x46616b652070656f706c65206e65656420746f206869646520626568696e6420612066616b65206d61736b" },
             { title: "⌐(ಠ۾ಠ)¬", content: "0x4265696e67207265616c206d65616e732073746179696e67207472756520746f206f6e6573656c66" },
             { title: "d[-_-]b", content: '<video controls><source src="philips_smarthome_lightbulps_zap.mp4" type="video/mp4">Your browser does not support the video tag.</video>' },
+            { title: "NEON TRACE", content: '<iframe class="game-frame" src="osint/index.html" title="Neon Trace OSINT Game"></iframe>', width: 720, height: 460, isGame: true },
             { title: "⦿⽘⦿", content: "0x4672656520746f206c69766520696e20746865697220747275746820776974686f757420636f6e6365616c696e67" },
             { title: "^⨀ᴥ⨀^", content: "0x43686f6f736520796f757220706174682077697468207265737065637420616e6420686f6e65737479" },
             { title: "┌∩┐(⋟﹏⋞)┌∩┐", content: "0x486f6e65737479206973207768617420696d706f7274616e7420616e64207265616c" },
@@ -194,7 +212,16 @@
                 const content = document.createElement('div');
                 content.classList.add('content');
                 content.innerHTML = item.content;
+                if (item.isGame) {
+                    content.classList.add('game-content');
+                    textbox.classList.add('game-window');
+                }
                 textbox.appendChild(content);
+
+                if (item.width && item.height) {
+                    textbox.style.width = `${item.width}px`;
+                    textbox.style.height = `${item.height}px`;
+                }
 
                 const xOffset = Math.random() * 600 - 300;
                 const yOffset = Math.random() * 600 - 300;

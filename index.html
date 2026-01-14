@@ -270,6 +270,8 @@
                     textbox.style.height = `${item.height}px`;
                 }
 
+                bringToFront(textbox);
+
                 const xOffset = Math.random() * 600 - 300;
                 const yOffset = Math.random() * 600 - 300;
                 textbox.style.top = `calc(50% + ${yOffset}px)`;
@@ -302,6 +304,13 @@
                 gameWindows.forEach((textbox) => setGameInteractivity(textbox, false));
             }
         });
+
+        document.addEventListener('mousedown', function(event) {
+            const textbox = event.target.closest && event.target.closest('.textbox');
+            if (textbox) {
+                bringToFront(textbox);
+            }
+        }, true);
     </script>
 </body>
 </html>

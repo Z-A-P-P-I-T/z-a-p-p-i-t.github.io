@@ -67,6 +67,16 @@
             margin-right: 8px;
         }
 
+        .refresh-button {
+            cursor: pointer;
+            color: rgba(0, 255, 255, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 9px;
+            margin-right: 8px;
+        }
+
         .separator {
             border-top: 1px solid rgba(0, 255, 0, 0.2);
             margin-top: 2px;
@@ -235,10 +245,15 @@
                 titleBar.classList.add('title-bar');
                 
                 let modeButton = null;
+                let refreshButton = null;
                 if (item.isGame) {
                     modeButton = document.createElement('span');
                     modeButton.classList.add('mode-button');
                     modeButton.textContent = 'USE';
+
+                    refreshButton = document.createElement('span');
+                    refreshButton.classList.add('refresh-button');
+                    refreshButton.textContent = 'REFRESH';
                 }
 
                 const minimizeButton = document.createElement('span');
@@ -248,6 +263,9 @@
                 titleBar.appendChild(document.createTextNode(item.title));
                 if (modeButton) {
                     titleBar.appendChild(modeButton);
+                }
+                if (refreshButton) {
+                    titleBar.appendChild(refreshButton);
                 }
                 titleBar.appendChild(minimizeButton);
                 textbox.appendChild(titleBar);
@@ -287,6 +305,16 @@
                         const isActive = textbox.classList.contains('active');
                         setGameInteractivity(textbox, !isActive);
                     };
+                    if (refreshButton) {
+                        refreshButton.onclick = function(event) {
+                            event.stopPropagation();
+                            const iframe = textbox.querySelector('iframe');
+                            if (iframe) {
+                                const currentSrc = iframe.src;
+                                iframe.src = currentSrc;
+                            }
+                        };
+                    }
                 }
 
                 document.body.appendChild(textbox);

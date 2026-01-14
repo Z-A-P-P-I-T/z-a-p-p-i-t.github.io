@@ -483,3 +483,9 @@ window.addEventListener("load", () => {
   fitToViewport();
   setTimeout(fitToViewport, 300);
 });
+
+window.addEventListener("pointerdown", () => {
+  if (window.parent) {
+    window.parent.postMessage({ type: "osint-focus" }, window.location.origin);
+  }
+});

@@ -311,6 +311,15 @@
                 bringToFront(textbox);
             }
         }, true);
+
+        window.addEventListener('message', function(event) {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            if (event.data && event.data.type === 'osint-focus') {
+                gameWindows.forEach((textbox) => bringToFront(textbox));
+            }
+        });
     </script>
 </body>
 </html>

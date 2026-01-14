@@ -173,11 +173,19 @@
             };
         }
 
+        let topZIndex = 10;
+
+        function bringToFront(textbox) {
+            topZIndex += 1;
+            textbox.style.zIndex = topZIndex;
+        }
+
         function makeTextboxDraggable(textbox) {
             const titleBar = textbox.querySelector('.title-bar');
 
             titleBar.onmousedown = function(event) {
                 event.preventDefault();
+                bringToFront(textbox);
                 let shiftX = event.clientX - textbox.getBoundingClientRect().left;
                 let shiftY = event.clientY - textbox.getBoundingClientRect().top;
 
@@ -201,6 +209,10 @@
             titleBar.ondragstart = function() {
                 return false;
             };
+
+            textbox.addEventListener('mousedown', function() {
+                bringToFront(textbox);
+            });
         }
 
         const gameWindows = [];

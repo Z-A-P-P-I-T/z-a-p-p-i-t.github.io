@@ -56,6 +56,17 @@
             color: rgba(0, 255, 0, 0.7);
         }
 
+        .mode-button {
+            cursor: pointer;
+            color: rgba(0, 255, 255, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 9px;
+            margin-left: auto;
+            margin-right: 8px;
+        }
+
         .separator {
             border-top: 1px solid rgba(0, 255, 0, 0.2);
             margin-top: 2px;
@@ -89,6 +100,10 @@
 
         .game-window {
             border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .game-window.active {
+            box-shadow: 0 0 18px rgba(0, 255, 255, 0.25);
         }
 
         /* Scrollbar styling */
@@ -188,6 +203,17 @@
             };
         }
 
+        const gameWindows = [];
+
+        function setGameInteractivity(textbox, enabled) {
+            const iframe = textbox.querySelector('iframe');
+            const modeButton = textbox.querySelector('.mode-button');
+            if (!iframe || !modeButton) return;
+            iframe.style.pointerEvents = enabled ? 'auto' : 'none';
+            textbox.classList.toggle('active', enabled);
+            modeButton.textContent = enabled ? 'LOCK' : 'USE';
+        }
+
         function createTextboxes() {
             hexValues.forEach((item) => {
                 const textbox = document.createElement('div');
@@ -196,11 +222,21 @@
                 const titleBar = document.createElement('div');
                 titleBar.classList.add('title-bar');
                 
+                let modeButton = null;
+                if (item.isGame) {
+                    modeButton = document.createElement('span');
+                    modeButton.classList.add('mode-button');
+                    modeButton.textContent = 'USE';
+                }
+
                 const minimizeButton = document.createElement('span');
                 minimizeButton.classList.add('minimize-button');
                 minimizeButton.textContent = '▼';
 
                 titleBar.appendChild(document.createTextNode(item.title));
+                if (modeButton) {
+                    titleBar.appendChild(modeButton);
+                }
                 titleBar.appendChild(minimizeButton);
                 textbox.appendChild(titleBar);
 
@@ -229,6 +265,15 @@
 
                 addMinimizeFunctionality(textbox);
                 makeTextboxDraggable(textbox);
+                if (item.isGame && modeButton) {
+                    gameWindows.push(textbox);
+                    setGameInteractivity(textbox, false);
+                    modeButton.onclick = function(event) {
+                        event.stopPropagation();
+                        const isActive = textbox.classList.contains('active');
+                        setGameInteractivity(textbox, !isActive);
+                    };
+                }
 
                 document.body.appendChild(textbox);
             });
@@ -239,6 +284,12 @@
         makeTextboxDraggable(mainTextbox);
 
         createTextboxes();
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                gameWindows.forEach((textbox) => setGameInteractivity(textbox, false));
+            }
+        });
     </script>
 </body>
 </html>

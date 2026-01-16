@@ -200,8 +200,12 @@
                 let shiftY = event.clientY - textbox.getBoundingClientRect().top;
 
                 function moveAt(pageX, pageY) {
-                    textbox.style.left = pageX - shiftX + 'px';
-                    textbox.style.top = pageY - shiftY + 'px';
+                    const maxLeft = window.innerWidth - textbox.offsetWidth;
+                    const maxTop = window.innerHeight - textbox.offsetHeight;
+                    const nextLeft = Math.min(Math.max(pageX - shiftX, 0), maxLeft);
+                    const nextTop = Math.min(Math.max(pageY - shiftY, 0), maxTop);
+                    textbox.style.left = nextLeft + 'px';
+                    textbox.style.top = nextTop + 'px';
                 }
 
                 function onMouseMove(event) {
@@ -230,8 +234,12 @@
         function setGameInteractivity(textbox, enabled) {
             const iframe = textbox.querySelector('iframe');
             const modeButton = textbox.querySelector('.mode-button');
+            const content = textbox.querySelector('.game-content');
             if (!iframe || !modeButton) return;
             iframe.style.pointerEvents = enabled ? 'auto' : 'none';
+            if (content) {
+                content.style.pointerEvents = enabled ? 'auto' : 'none';
+            }
             textbox.classList.toggle('active', enabled);
             modeButton.textContent = enabled ? 'LOCK' : 'USE';
         }

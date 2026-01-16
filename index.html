@@ -190,6 +190,21 @@
             textbox.style.zIndex = topZIndex;
         }
 
+        function clampTextboxToViewport(textbox) {
+            const titleBar = textbox.querySelector('.title-bar');
+            const minVisible = 80;
+            const titleHeight = titleBar ? titleBar.offsetHeight : 26;
+            const maxLeft = window.innerWidth - minVisible;
+            const minLeft = Math.min(0, window.innerWidth - textbox.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - titleHeight);
+            const currentLeft = parseFloat(textbox.style.left) || 0;
+            const currentTop = parseFloat(textbox.style.top) || 0;
+            const nextLeft = Math.min(Math.max(currentLeft, minLeft), maxLeft);
+            const nextTop = Math.min(Math.max(currentTop, 0), maxTop);
+            textbox.style.left = nextLeft + 'px';
+            textbox.style.top = nextTop + 'px';
+        }
+
         function makeTextboxDraggable(textbox) {
             const titleBar = textbox.querySelector('.title-bar');
 
@@ -200,9 +215,12 @@
                 let shiftY = event.clientY - textbox.getBoundingClientRect().top;
 
                 function moveAt(pageX, pageY) {
-                    const maxLeft = window.innerWidth - textbox.offsetWidth;
-                    const maxTop = window.innerHeight - textbox.offsetHeight;
-                    const nextLeft = Math.min(Math.max(pageX - shiftX, 0), maxLeft);
+                    const minVisible = 80;
+                    const titleHeight = titleBar.offsetHeight || 26;
+                    const maxLeft = window.innerWidth - minVisible;
+                    const minLeft = Math.min(0, window.innerWidth - textbox.offsetWidth);
+                    const maxTop = Math.max(0, window.innerHeight - titleHeight);
+                    const nextLeft = Math.min(Math.max(pageX - shiftX, minLeft), maxLeft);
                     const nextTop = Math.min(Math.max(pageY - shiftY, 0), maxTop);
                     textbox.style.left = nextLeft + 'px';
                     textbox.style.top = nextTop + 'px';
@@ -334,6 +352,12 @@
         makeTextboxDraggable(mainTextbox);
 
         createTextboxes();
+
+        window.addEventListener('resize', function() {
+            document.querySelectorAll('.textbox').forEach((textbox) => {
+                clampTextboxToViewport(textbox);
+            });
+        });
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {

@@ -49,6 +49,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            touch-action: none;
+            user-select: none;
         }
 
         .minimize-button {
@@ -86,6 +88,7 @@
             padding: 10px;
             overflow-y: scroll;
             height: calc(100% - 40px); /* Adjust height to fit the separator and title bar */
+            touch-action: pan-y;
         }
 
         /* Styling for the video */
@@ -114,6 +117,18 @@
 
         .game-window.active {
             box-shadow: 0 0 18px rgba(0, 255, 255, 0.25);
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            width: 14px;
+            height: 14px;
+            border-right: 2px solid rgba(0, 255, 0, 0.6);
+            border-bottom: 2px solid rgba(0, 255, 0, 0.6);
+            cursor: se-resize;
+            touch-action: none;
         }
 
         /* Scrollbar styling */
@@ -207,43 +222,83 @@
 
         function makeTextboxDraggable(textbox) {
             const titleBar = textbox.querySelector('.title-bar');
+            if (!titleBar) return;
 
-            titleBar.onmousedown = function(event) {
+            titleBar.addEventListener('pointerdown', function(event) {
+                if (event.button && event.button !== 0) return;
                 event.preventDefault();
                 bringToFront(textbox);
-                let shiftX = event.clientX - textbox.getBoundingClientRect().left;
-                let shiftY = event.clientY - textbox.getBoundingClientRect().top;
+                titleBar.setPointerCapture(event.pointerId);
+                const rect = textbox.getBoundingClientRect();
+                const shiftX = event.clientX - rect.left;
+                const shiftY = event.clientY - rect.top;
 
-                function moveAt(pageX, pageY) {
+                function moveAt(clientX, clientY) {
                     const minVisible = 80;
                     const titleHeight = titleBar.offsetHeight || 26;
                     const maxLeft = window.innerWidth - minVisible;
                     const minLeft = Math.min(0, window.innerWidth - textbox.offsetWidth);
                     const maxTop = Math.max(0, window.innerHeight - titleHeight);
-                    const nextLeft = Math.min(Math.max(pageX - shiftX, minLeft), maxLeft);
-                    const nextTop = Math.min(Math.max(pageY - shiftY, 0), maxTop);
+                    const nextLeft = Math.min(Math.max(clientX - shiftX, minLeft), maxLeft);
+                    const nextTop = Math.min(Math.max(clientY - shiftY, 0), maxTop);
                     textbox.style.left = nextLeft + 'px';
                     textbox.style.top = nextTop + 'px';
                 }
 
-                function onMouseMove(event) {
-                    moveAt(event.pageX, event.pageY);
+                function onPointerMove(moveEvent) {
+                    moveAt(moveEvent.clientX, moveEvent.clientY);
                 }
 
-                document.addEventListener('mousemove', onMouseMove);
+                function onPointerUp() {
+                    titleBar.releasePointerCapture(event.pointerId);
+                    titleBar.removeEventListener('pointermove', onPointerMove);
+                    titleBar.removeEventListener('pointerup', onPointerUp);
+                    titleBar.removeEventListener('pointercancel', onPointerUp);
+                }
 
-                document.onmouseup = function() {
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.onmouseup = null;
-                };
-            };
-
-            titleBar.ondragstart = function() {
-                return false;
-            };
+                titleBar.addEventListener('pointermove', onPointerMove);
+                titleBar.addEventListener('pointerup', onPointerUp);
+                titleBar.addEventListener('pointercancel', onPointerUp);
+            });
 
             textbox.addEventListener('mousedown', function() {
                 bringToFront(textbox);
+            });
+        }
+
+        function makeTextboxResizable(textbox) {
+            const handle = textbox.querySelector('.resize-handle');
+            if (!handle) return;
+
+            handle.addEventListener('pointerdown', function(event) {
+                if (event.button && event.button !== 0) return;
+                event.preventDefault();
+                bringToFront(textbox);
+                handle.setPointerCapture(event.pointerId);
+                const startRect = textbox.getBoundingClientRect();
+                const startX = event.clientX;
+                const startY = event.clientY;
+                const minWidth = 180;
+                const minHeight = 120;
+
+                function onPointerMove(moveEvent) {
+                    const nextWidth = Math.max(minWidth, startRect.width + (moveEvent.clientX - startX));
+                    const nextHeight = Math.max(minHeight, startRect.height + (moveEvent.clientY - startY));
+                    textbox.style.width = nextWidth + 'px';
+                    textbox.style.height = nextHeight + 'px';
+                }
+
+                function onPointerUp() {
+                    handle.releasePointerCapture(event.pointerId);
+                    handle.removeEventListener('pointermove', onPointerMove);
+                    handle.removeEventListener('pointerup', onPointerUp);
+                    handle.removeEventListener('pointercancel', onPointerUp);
+                    clampTextboxToViewport(textbox);
+                }
+
+                handle.addEventListener('pointermove', onPointerMove);
+                handle.addEventListener('pointerup', onPointerUp);
+                handle.addEventListener('pointercancel', onPointerUp);
             });
         }
 
@@ -309,6 +364,10 @@
                 }
                 textbox.appendChild(content);
 
+                const resizeHandle = document.createElement('div');
+                resizeHandle.classList.add('resize-handle');
+                textbox.appendChild(resizeHandle);
+
                 if (item.width && item.height) {
                     textbox.style.width = `${item.width}px`;
                     textbox.style.height = `${item.height}px`;
@@ -323,6 +382,7 @@
 
                 addMinimizeFunctionality(textbox);
                 makeTextboxDraggable(textbox);
+                makeTextboxResizable(textbox);
                 if (item.isGame && modeButton) {
                     gameWindows.push(textbox);
                     setGameInteractivity(textbox, false);

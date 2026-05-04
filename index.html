@@ -230,6 +230,11 @@
 
             titleBar.addEventListener('pointerdown', function(event) {
                 if (event.button && event.button !== 0) return;
+                if (event.target.classList.contains('mode-button') ||
+                    event.target.classList.contains('refresh-button') ||
+                    event.target.classList.contains('minimize-button')) {
+                    return;
+                }
                 event.preventDefault();
                 bringToFront(textbox);
                 titleBar.setPointerCapture(event.pointerId);
